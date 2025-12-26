@@ -226,7 +226,7 @@ export default function App() {
   // Auth & Loyalty
   const [user, setUser] = useState(null); 
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // Novo estado para o menu
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); 
   const [loyaltyProgress, setLoyaltyProgress] = useState(0);
 
   // Pagamento & Pedido
@@ -307,7 +307,7 @@ export default function App() {
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const finalTotal = cartTotal + DELIVERY_FEE;
 
-  // --- AUTHENTICATION (USANDO TABELA DE PEDIDOS COMO FALLBACK) ---
+  // --- AUTHENTICATION ---
   const handleAuth = async (type, data) => {
     if (!supabase) return alert("Conectando ao servidor... tente novamente.");
 
@@ -417,16 +417,13 @@ export default function App() {
       });
       const data = await response.json();
       
-      // Se a API retornar sucesso, use os dados
       if (data && data.data && data.data.billing) {
         return data.data.billing;
       } else {
-        // Se a API não retornar o esperado (ex: erro de autorização ou CORS), lance um erro para cair no catch
         throw new Error("Resposta inválida da API");
       }
     } catch (error) {
       console.warn("Erro AbacatePay (Usando Fallback Simulado):", error);
-      // Fallback visual para teste se a API falhar (comum em localhost/iframe por CORS)
       return {
          pix: {
            qrcode: "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913DOCE E SER6008BRASILIA62070503***630465F3",
@@ -445,7 +442,6 @@ export default function App() {
     if (user && supabase) {
       const newAddress = { rua: customer.rua, numero: customer.numero, bairro: customer.bairro };
       const userId = `user_${user.phone.replace(/\D/g, '')}`;
-      
       const updatedCustomer = { ...user, address: newAddress };
       
       await supabase
@@ -712,6 +708,66 @@ export default function App() {
               className="w-full bg-purple-700 text-white py-3.5 rounded-xl font-bold hover:bg-purple-800 transition shadow-lg shadow-purple-700/20 active:scale-[0.98]"
             >
               Adicionar ao Carrinho
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // --- COMPONENTE PAYMENT MODAL ADICIONADO AQUI ---
+  const PaymentModal = () => {
+    if (!paymentModalOpen || !paymentData) return null;
+
+    const copyToClipboard = () => {
+      if (paymentData.pix && paymentData.pix.copypaste) {
+        navigator.clipboard.writeText(paymentData.pix.copypaste);
+        alert("Código Pix copiado!");
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+        <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl scale-100 animate-slideUp">
+          <div className="bg-green-600 p-6 text-center text-white relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+             <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-90" />
+             <h3 className="text-2xl font-bold">Pagamento via Pix</h3>
+             <p className="text-green-100 text-sm">Escaneie ou copie o código abaixo</p>
+          </div>
+
+          <div className="p-8 flex flex-col items-center">
+            {/* QR Code Placeholder */}
+            <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-300 overflow-hidden relative group">
+               <QrCode className="w-24 h-24 text-gray-300 absolute" />
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white opacity-0 group-hover:opacity-10 text-xs font-bold text-gray-500">
+                  QR Code AbacatePay
+               </div>
+               <div className="z-10 bg-white p-2 rounded-lg shadow-sm">
+                  <QrCode className="w-32 h-32 text-gray-800" />
+               </div>
+            </div>
+
+            <p className="text-2xl font-black text-gray-800 mb-6">{formatBR(finalTotal)}</p>
+
+            <div className="w-full space-y-3">
+              <button 
+                onClick={copyToClipboard}
+                className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold transition border border-gray-200"
+              >
+                <Copy className="w-4 h-4" /> Copiar Código Pix
+              </button>
+              
+              <button 
+                onClick={handleConfirmOrder}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-green-600/20 transition transform active:scale-[0.98]"
+              >
+                Já fiz o pagamento!
+              </button>
+            </div>
+            
+            <button onClick={() => setPaymentModalOpen(false)} className="mt-4 text-xs text-gray-400 hover:text-gray-600 underline">
+              Cancelar / Pagar Depois
             </button>
           </div>
         </div>
