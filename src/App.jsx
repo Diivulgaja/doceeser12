@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 /* ------------- CONFIGURAÇÕES ------------- */
-const COLLECTION_ORDERS = "doceeser_pedidos"; // Usaremos esta tabela para TUDO (pedidos e usuarios)
+const COLLECTION_ORDERS = "doceeser_pedidos"; 
 const DELIVERY_FEE = 2.99;
 const ETA_TEXT = "20–35 min";
 const LOYALTY_GOAL = 10; 
@@ -16,7 +16,7 @@ const LOYALTY_GOAL = 10;
 // URL DA LOGO ATUALIZADA
 const LOGO_URL = "https://i.imgur.com/4LsEEuy.jpeg";
 
-// CHAVE DA API ABACATE PAY (Atualizada)
+// CHAVE DA API ABACATE PAY
 const ABACATE_API_KEY = "abc_dev_QdGhCfpcGjZ4AcM2eZaR2nxQ"; 
 
 // Chaves do Supabase
@@ -715,7 +715,7 @@ export default function App() {
     );
   };
 
-  // --- COMPONENTE PAYMENT MODAL ADICIONADO AQUI ---
+  // --- COMPONENTE PAYMENT MODAL REINSERIDO AQUI ---
   const PaymentModal = () => {
     if (!paymentModalOpen || !paymentData) return null;
 
