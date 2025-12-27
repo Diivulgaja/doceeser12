@@ -475,16 +475,22 @@ export default function App() {
       createdAt: new Date().toISOString(),
       total: finalTotal,
       items: cart,
-      customer: customer, 
-      paymentMethod: 'PIX',
-      paymentStatus: 'Aguardando Confirmação'
+      customer: customer,
+      // Removendo campos que podem não existir na tabela
+      // paymentMethod: 'PIX',
+      // paymentStatus: 'Aguardando Confirmação'
     };
 
     const { error } = await supabase.from(COLLECTION_ORDERS).insert(payload);
     
     if (error) {
       console.error(error);
-      alert("Erro ao enviar pedido.");
+      // Se for erro de coluna, tenta novamente sem campos extras
+      if (error.code === 'PGRST204') {
+         alert("Erro de versão do banco. Contate o suporte.");
+      } else {
+         alert("Erro ao enviar pedido.");
+      }
     } else {
       setLastOrderId(orderId);
       setOrderStatus('novo');
@@ -495,7 +501,7 @@ export default function App() {
     }
   };
 
-  // --- COMPONENTES VISUAIS ---
+  // --- COMPONENTES VISUAIS (DEFINIDOS DENTRO DO APP) ---
   
   const AuthModal = () => {
     if (!authModalOpen) return null;
@@ -779,7 +785,7 @@ export default function App() {
   
   const MenuPage = (
     <div className="pb-32">
-      {/* Hero Section / Loyalty */}
+      {/* Hero Section */}
       {user ? (
         <div className="px-4 mt-6">
           <LoyaltyCard />
@@ -796,7 +802,6 @@ export default function App() {
               </button>
             </div>
           </div>
-          {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute right-[-20px] bottom-[-40px] opacity-20 rotate-12">
              <Cake className="w-64 h-64 text-white" />
