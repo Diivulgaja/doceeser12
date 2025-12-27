@@ -480,6 +480,7 @@ export default function App() {
       localStorage.setItem('doceeser_user', JSON.stringify(updatedCustomer));
     }
     setIsProcessingPayment(true);
+    
     try {
       const response = await fetch("https://api.abacatepay.com/v1/billing/create", {
         method: "POST",
@@ -487,14 +488,17 @@ export default function App() {
         body: JSON.stringify({ frequency: "ONE_TIME", methods: ["PIX"], products: cart.map(item => ({ externalId: String(item.id), name: item.name, quantity: item.quantity, price: Math.round(item.price * 100) })), returnUrl: window.location.href, completionUrl: window.location.href, customer: { name: customer.nome, phone: customer.telefone } })
       });
       const data = await response.json();
+      
+      // Validação estrita: Se não vier o billing, é erro. Nada de simulação.
       if (data && data.data && data.data.billing) {
         setPaymentData(data.data.billing);
         setPaymentModalOpen(true);
-      } else { throw new Error("API Error"); }
+      } else {
+        throw new Error(data.error || "Erro desconhecido na API");
+      }
     } catch (error) {
-      console.warn("Erro AbacatePay (Fallback):", error);
-      setPaymentData({ pix: { qrcode: "000201...", copypaste: "000201..." } });
-      setPaymentModalOpen(true);
+      console.error("Erro Pagamento:", error);
+      alert("Não foi possível gerar o pagamento. Tente novamente mais tarde.");
     }
     setIsProcessingPayment(false);
   };
